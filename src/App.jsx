@@ -6,22 +6,30 @@ function App() {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleAsk = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('https://aiagent-frontend-one.vercel.app/api/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      setResponse(data.response);
-    } catch (error) {
-      setResponse('❌ Error contacting server.');
-      console.error(error);
+const handleAsk = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch('https://aiagent-frontend-one.vercel.app/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+
+    // Check if response is OK and Content-Type is JSON
+    if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) {
+      const errorText = await res.text();  // Get raw text
+      throw new Error(`Unexpected response: ${errorText}`);
     }
-    setLoading(false);
-  };
+
+    const data = await res.json();
+    setResponse(data.response);
+  } catch (error) {
+    setResponse('❌ Error: ' + error.message);
+    console.error('Fetch error:', error);
+  }
+  setLoading(false);
+};
+
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
